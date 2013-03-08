@@ -99,8 +99,8 @@ _FPOR(PWMPIN_ON & HPOL_ON & LPOL_ON);
 #define FCY  29491200			//FRC w/PLL x16
 #define MILLISEC FCY/29491		//1 mSec delay constant
 #define FPWM 20000				//20KHz PWM Freq
-#define S3	!PORTBbits.RB4		//Defines for the Push Buttons status
-#define S2	!PORTAbits.RA8
+#define S3	 !PORTBbits.RB4		//Defines for the Push Buttons status
+#define S2       !PORTAbits.RA8
 /******************************************************************************
 * OPEN LOOP DEFINITION
 * If defined then the compiler will add the PID controller for speed
@@ -113,14 +113,15 @@ _FPOR(PWMPIN_ON & HPOL_ON & LPOL_ON);
 #define RAM_UP_DELAY  0    	 	// Delay for the ramp up sequence, expressed in millisecond
 #define MAX_DUTY_CYCLE 1400  	// 100% duty cycle P1DC1=P1DC2=P1DC3 = 1469
 #define MIN_DUTY_CYCLE 40	 	// 2.7% duty cycle P1DC1=P1DC2=P1DC3 = 72
-#define PHASE_ADVANCE_DEGREES 25//Phase advance angles to get the best motor performance
+#define PHASE_ADVANCE_DEGREES 25 //Phase advance angles to get the best motor performance
 #define BLANKING_COUNT 5		//Blanking count expressed in PWM periods used to avoid false zero-crossing detection after commutating motor
-#define POLEPAIRS 5			 	// Number of pole pairs of the motor
+#define POLEPAIRS 12			 	// Number of pole pairs of the motor
 /*PI CONTROLLER PARAMETER, CONVERSION SPEED FACTOR */
 // SPEEDMULT = (TIMER2 TIMEBASE/PWM TIMEBASE) * MAX_DUTY_CYLE*2	
 #define SPEEDMULT	94016			// Factor used to calculated speed PWM TIMEBASE = FCY/2, TIMER2 TIMEBASE / FCY/64
 #define INDEX		1				// Commutation base index
 #define DEBOUNCE_DELAY 	20			// Push button debounce delay, expressed in millisecond
+
 
 /* Six-Step Commutation States*/
 /*PHASE A is MI,  PHASE B is M2, PHASE C is M3 in the dsPICDEM MCLV board*/
@@ -145,7 +146,7 @@ const unsigned char ADC_BEMF_FILTER[64]=
 /*Application Flags to indicate the motor status*/
 struct {
 			unsigned RunMotor : 	  1;
-		    unsigned RotorAlignment : 1;
+                        unsigned RotorAlignment : 1;
 			unsigned unused :		  14;     
 		}Flags;        
 
@@ -181,6 +182,7 @@ unsigned int Timer2Value;
 unsigned int Timer2Average;
 unsigned int Timer1Value;
 
+
 /********************* PID Varibles  *********************************/
 #ifdef CLOSELOOPMODE
 unsigned int ReferenceSpeed;
@@ -204,6 +206,9 @@ void PreCommutationState(void);
 void SpeedPILoopController(void);
 void OpenLoopController(void);
 void DelayNmSec(unsigned int N);
+
+//-----------------------------Musadjans-------------------------------//
+ int Sub_timer;
 
 /******************************************************************************
 * Function:     main(void)
@@ -322,15 +327,20 @@ int main(void)
 		Flags.RotorAlignment = 0;		// TURN OFF rotor alignment sequence
 		PWMticks = MAX_PWM_TICKS+1;		// RAMP UP for breaking the motor IDLE state
 		DelayNmSec(RAM_UP_DELAY);		// RAMP UP DELAY
-
+                Sub_timer=Sub_timer++;
 		/****************** Motor is running *********************************/
 		while(Flags.RunMotor)			// while motor is running
 			{
  
-		/****************** Stop Motor *********************************/			
-			if (S3)							// if S3 is pressed
-				{
-				while (S3)					// wait for key release
+		/****************** Stop Motor *********************************/
+                    
+
+
+			//if (S3)							// if S3 is pressed
+				//{
+                    Sub_timer=0;
+                    while ( Sub_timer=Sub_timer++<=600)
+				//while (S3)					// wait for key release
 					DelayNmSec(DEBOUNCE_DELAY);		
 		
 				PWM1CON1 = 0x0700;			// disable PWM outputs
@@ -364,7 +374,7 @@ int main(void)
 				PIDStructure.controlOutput = MIN_DUTY_CYCLE;
 #endif
 								
-                }
+               // }
 			}//end of motor running loop
 		}//end of infinite loop
 
