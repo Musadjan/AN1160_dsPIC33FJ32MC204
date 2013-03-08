@@ -338,8 +338,8 @@ int main(void)
 
 			//if (S3)							// if S3 is pressed
 				//{
-                    Sub_timer=0;
-                    while ( Sub_timer=Sub_timer++<=600)
+                    Sub_timer=0;                        // Musses
+                    while ( Sub_timer=Sub_timer++<=600) // Musses
 				//while (S3)					// wait for key release
 					DelayNmSec(DEBOUNCE_DELAY);		
 		
